@@ -1,0 +1,4 @@
+*.ipynb
+html/
+topics/
+.ipynb_checkpoints/
