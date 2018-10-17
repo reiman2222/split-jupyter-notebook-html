@@ -8,6 +8,10 @@ import copy
 import os
 from lxml import html
 
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
+from nbconvert import HTMLExporter
+
 def getIDFromCellSource(cell):
     if(cell['cell_type'] != 'markdown'):
         return None
@@ -100,20 +104,16 @@ def formatHTML(body):
 
     # Remove all style elements
     for style in page_html.xpath('//style[@type="text/css"]'):
-          style.getparent().remove(style)
+        style.getparent().remove(style)
 
     # link to the style file
-    style_custom = html.Element('link', href="css/notebook.css", rel="stylesheet")
+    style_custom = html.Element('link', href="/css/notebook.css", rel="stylesheet")
     page_html.xpath('//meta')[0].getparent().append(style_custom)
 
-    # set base location
-    base_loc = html.Element('base', href="../")
-    page_html.xpath('//meta')[0].getparent().insert(1, base_loc)
-
     # Change custom.css to correct location
-    page_html.xpath('//link[@href="custom.css"]')[0].attrib['href'] = "css/custom.css"
+    page_html.xpath('//link[@href="custom.css"]')[0].attrib['href'] = "/css/custom.css"
 
-    return html.tostring(page_html,encoding='utf8')
+    return html.tostring(page_html, encoding='unicode')
 
 #-----------------------------------#
 #               MAIN                #
@@ -121,10 +121,10 @@ def formatHTML(body):
 
 def main():
     # notebookName = input('Enter the name of the notebook you would like convert to html:\n')
-    notebookName = "classification.ipynb"
+    notebook_filename = "classification.ipynb"
 
-    f = open(notebookName,'r')
-    js = json.loads(f.read())
+    with open(notebook_filename,'r') as f:
+        js = json.loads(f.read())
 
     cells = js['cells']
 
@@ -145,13 +145,6 @@ def main():
 
     print('\nWritting results to folder: html')
 
-    import nbformat
-    from nbconvert.preprocessors import ExecutePreprocessor
-
-    from nbconvert import HTMLExporter
-
-    notebook_filename = "classification.ipynb"
-
     for topic in subNotebooks:
         filename = topic[2]
         notebook_filename = 'topics/' + filename + '.ipynb'
@@ -166,7 +159,7 @@ def main():
 
         checkDir('html')
 
-        with open('html/' + filename + '.ejs', "w+") as nbHTML:
+        with open('html/' + filename + '.html', "w+") as nbHTML:
             nbHTML.write(formatHTML(body))
 
 main()
